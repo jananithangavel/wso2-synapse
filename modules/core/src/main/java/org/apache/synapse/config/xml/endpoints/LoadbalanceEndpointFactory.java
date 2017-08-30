@@ -78,6 +78,13 @@ public final class LoadbalanceEndpointFactory extends EndpointFactory {
                 loadbalanceEndpoint.setName(name.getAttributeValue());
             }
 
+            OMAttribute blockingAtt = epConfig.getAttribute(new QName("blocking"));
+            if (blockingAtt != null) {
+                loadbalanceElement.addAttribute(blockingAtt);
+                loadbalanceEndpoint.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
+            }
+
+
             LoadbalanceAlgorithm algorithm = null;
 
             // set endpoints or members

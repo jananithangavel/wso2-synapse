@@ -82,6 +82,12 @@ public class RecipientListEndpointFactory extends EndpointFactory {
             if (name != null) {
             	recipientListEndpoint.setName(name.getAttributeValue());
             }
+
+            OMAttribute blockingAtt = epConfig.getAttribute(new QName("blocking"));
+            if (blockingAtt != null) {
+                recipientListElement.addAttribute(blockingAtt);
+                recipientListEndpoint.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
+            }
             
 			// set endpoints or members
 			if (recipientListElement

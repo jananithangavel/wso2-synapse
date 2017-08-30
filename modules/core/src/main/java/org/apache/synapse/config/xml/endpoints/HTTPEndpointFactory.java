@@ -65,6 +65,11 @@ public class HTTPEndpointFactory extends DefaultEndpointFactory {
             httpEndpoint.setName(name.getAttributeValue());
         }
 
+        OMAttribute blockingAtt = epConfig.getAttribute(new QName("blocking"));
+        if (blockingAtt != null) {
+            httpEndpoint.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
+        }
+
         OMElement httpElement = epConfig.getFirstChildWithName(
                 new QName(SynapseConstants.SYNAPSE_NAMESPACE, "http"));
 

@@ -19,6 +19,7 @@
 
 package org.apache.synapse.endpoints;
 
+import org.apache.axiom.om.OMAttribute;
 import org.apache.synapse.ManagedLifecycle;
 import org.apache.synapse.MessageContext;
 import org.apache.synapse.Nameable;

@@ -111,6 +111,12 @@ public class SALoadbalanceEndpointFactory extends EndpointFactory {
 
         if(loadbalanceElement != null) {
 
+            OMAttribute blockingAtt = epConfig.getAttribute(new QName("blocking"));
+            if (blockingAtt != null) {
+                loadbalanceElement.addAttribute(blockingAtt);
+                loadbalanceEndpoint.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
+            }
+
             // set endpoints
             List<Endpoint> endpoints = getEndpoints(loadbalanceElement,
                     loadbalanceEndpoint, properties);

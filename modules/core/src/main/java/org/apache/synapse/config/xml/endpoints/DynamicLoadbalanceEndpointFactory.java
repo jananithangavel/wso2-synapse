@@ -84,6 +84,12 @@ public class DynamicLoadbalanceEndpointFactory extends EndpointFactory {
                 loadbalanceEndpoint.setName(name.getAttributeValue());
             }
 
+            OMAttribute blockingAtt = epConfig.getAttribute(new QName("blocking"));
+            if (blockingAtt != null) {
+                loadbalanceElement.addAttribute(blockingAtt);
+                loadbalanceEndpoint.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
+            }
+
             // get the session for this endpoint
             OMElement sessionElement = epConfig.
                     getFirstChildWithName(new QName(SynapseConstants.SYNAPSE_NAMESPACE, "session"));

@@ -79,6 +79,11 @@ public class DefaultEndpointFactory extends EndpointFactory {
             defaultEndpoint.setName(name.getAttributeValue());
         }
 
+        OMAttribute blockingAtt = epConfig.getAttribute(new QName("blocking"));
+        if (blockingAtt != null) {
+            defaultEndpoint.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
+        }
+
         OMElement defaultElement = epConfig.getFirstChildWithName(
                 new QName(SynapseConstants.SYNAPSE_NAMESPACE, "default"));
         if (defaultElement != null) {

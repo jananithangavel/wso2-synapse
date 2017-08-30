@@ -80,6 +80,11 @@ public class AddressEndpointFactory extends DefaultEndpointFactory {
             addressEndpoint.setName(name.getAttributeValue());
         }
 
+        OMAttribute blockingAtt = epConfig.getAttribute(new QName("blocking"));
+        if (blockingAtt != null) {
+            addressEndpoint.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
+        }
+
         OMElement addressElement = epConfig.getFirstChildWithName(
                 new QName(SynapseConstants.SYNAPSE_NAMESPACE, "address"));
         if (addressElement != null) {

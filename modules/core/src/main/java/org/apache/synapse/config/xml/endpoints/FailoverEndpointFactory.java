@@ -19,6 +19,7 @@
 
 package org.apache.synapse.config.xml.endpoints;
 
+import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
 import org.apache.synapse.SynapseConstants;
 import org.apache.synapse.SynapseException;
@@ -61,6 +62,12 @@ public class FailoverEndpointFactory extends EndpointFactory {
             String name = epConfig.getAttributeValue(new QName("name"));
             if (name != null) {
                 failoverEndpoint.setName(name);
+            }
+
+            OMAttribute blockingAtt = epConfig.getAttribute(new QName("blocking"));
+            if (blockingAtt != null) {
+                failoverElement.addAttribute(blockingAtt);
+                failoverEndpoint.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
             }
 
             List<Endpoint> childEndpoints = getEndpoints(

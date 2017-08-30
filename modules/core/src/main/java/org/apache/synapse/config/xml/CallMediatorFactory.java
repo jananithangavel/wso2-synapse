@@ -89,16 +89,20 @@ public class CallMediatorFactory extends AbstractMediatorFactory {
         // set its common attributes such as tracing etc
         processAuditStatus(callMediator, elem);
 
+        OMAttribute blockingAtt = elem.getAttribute(BLOCKING_Q);
         OMElement epElement = elem.getFirstChildWithName(ENDPOINT_Q);
         if (epElement != null) {
             // create the endpoint and set it in the call mediator
+            if (blockingAtt != null) {
+                epElement.addAttribute(blockingAtt);
+            }
             Endpoint endpoint = EndpointFactory.getEndpointFromElement(epElement, true, properties);
             if (endpoint != null) {
                 callMediator.setEndpoint(endpoint);
             }
         }
 
-        OMAttribute blockingAtt = elem.getAttribute(BLOCKING_Q);
+
         if (blockingAtt != null) {
             callMediator.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
             if(callMediator.isBlocking()){

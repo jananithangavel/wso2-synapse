@@ -113,6 +113,8 @@ public abstract class AbstractEndpoint extends FaultHandler implements Endpoint,
 
     private boolean isEdited = false;
 
+    private boolean blocking=false;
+
     protected AbstractEndpoint() {
         log = LogFactory.getLog(this.getClass());
     }
@@ -290,101 +292,106 @@ public abstract class AbstractEndpoint extends FaultHandler implements Endpoint,
     }
 
     public void send(MessageContext synCtx) {
-
-        logSetter();
-
-        Integer statisticReportingIndex = null;
-        boolean isStatisticsEnabled = RuntimeStatisticCollector.isStatisticsEnabled();
-        if (isStatisticsEnabled) {
-            statisticReportingIndex = OpenEventCollector.reportEntryEvent(synCtx, getReportingName(),
-                    definition.getAspectConfiguration(), ComponentType.ENDPOINT);
+        if(blocking){
+            int x=2;
         }
+        else{
+            logSetter();
 
-        boolean traceOn = isTraceOn(synCtx);
-        boolean traceOrDebugOn = isTraceOrDebugOn(traceOn);
-
-        if (!initialized) {
-            //can't send to a non-initialized endpoint. This is a program fault
-            throw new IllegalStateException("not initialized, " +
-                                            "endpoint must be in initialized state");
-        }
-
-        prepareForEndpointStatistics(synCtx);
-
-        if (traceOrDebugOn) {
-            String address = definition.getAddress();
-            if (address == null && synCtx.getTo() != null && synCtx.getTo().getAddress() != null) {
-                // compute address for the default endpoint only for logging purposes
-                address = synCtx.getTo().getAddress();
+            Integer statisticReportingIndex = null;
+            boolean isStatisticsEnabled = RuntimeStatisticCollector.isStatisticsEnabled();
+            if (isStatisticsEnabled) {
+                statisticReportingIndex = OpenEventCollector.reportEntryEvent(synCtx, getReportingName(),
+                        definition.getAspectConfiguration(), ComponentType.ENDPOINT);
             }
 
-            traceOrDebug(traceOn, "Sending message through endpoint : " +
-                                  getName() + " resolving to address = " + address);
-            traceOrDebug(traceOn, "SOAPAction: " + (synCtx.getSoapAction() != null ?
-                                                    synCtx.getSoapAction() : "null"));
-            traceOrDebug(traceOn, "WSA-Action: " + (synCtx.getWSAAction() != null ?
-                                                    synCtx.getWSAAction() : "null"));
-            if (traceOn && trace.isTraceEnabled()) {
-                trace.trace("Envelope : \n" + synCtx.getEnvelope());
+            boolean traceOn = isTraceOn(synCtx);
+            boolean traceOrDebugOn = isTraceOrDebugOn(traceOn);
+
+            if (!initialized) {
+                //can't send to a non-initialized endpoint. This is a program fault
+                throw new IllegalStateException("not initialized, " +
+                        "endpoint must be in initialized state");
             }
-        }
 
-        // push the errorHandler sequence into the current message as the fault handler
-        if (errorHandler != null) {
-            Mediator errorHandlerMediator = synCtx.getSequence(errorHandler);
-            if (errorHandlerMediator != null) {
-                if (traceOrDebugOn) {
-                    traceOrDebug(traceOn, "Setting the onError handler : " +
-                                          errorHandler + " for the endpoint : " + endpointName);
-                }
-                synCtx.pushFaultHandler(
-                        new MediatorFaultHandler(errorHandlerMediator));
-            } else {
-                log.warn("onError handler sequence : " + errorHandler + " for : " +
-                         endpointName + " cannot be found");
-            }
-        }
+            prepareForEndpointStatistics(synCtx);
 
-        // register this as the immediate fault handler for this message.
-        synCtx.pushFaultHandler(this);
-        // add this as the last endpoint to process this message - used by statistics counting code
-        synCtx.setProperty(SynapseConstants.LAST_ENDPOINT, this);
-        // set message level metrics collector
-        org.apache.axis2.context.MessageContext axis2Ctx = ((Axis2MessageContext) synCtx).getAxis2MessageContext();
-        axis2Ctx.setProperty(BaseConstants.METRICS_COLLECTOR, metricsMBean);
-
-        if (contentAware) {
-            try {
-                RelayUtils.buildMessage(((Axis2MessageContext) synCtx).getAxis2MessageContext(), false);
-                axis2Ctx.setProperty(RelayConstants.FORCE_RESPONSE_EARLY_BUILD, Boolean.TRUE);
-                if (forceBuildMC) {
-                    ((Axis2MessageContext) synCtx).getAxis2MessageContext().getEnvelope().build();
-                }
-            } catch (Exception e) {
-                handleException("Error while building message", e);
-            }
-        }
-
-        evaluateProperties(synCtx);
-
-        // if the envelope preserving set build the envelope
-        MediatorProperty preserveEnv = getProperty(SynapseConstants.PRESERVE_ENVELOPE);
-        if (preserveEnv != null && JavaUtils.isTrueExplicitly(preserveEnv.getValue() != null ?
-                                                              preserveEnv.getValue() : preserveEnv.getEvaluatedExpression(synCtx))) {
             if (traceOrDebugOn) {
-                traceOrDebug(traceOn, "Preserving the envelope by building it before " +
-                                      "sending, since it is explicitly set");
+                String address = definition.getAddress();
+                if (address == null && synCtx.getTo() != null && synCtx.getTo().getAddress() != null) {
+                    // compute address for the default endpoint only for logging purposes
+                    address = synCtx.getTo().getAddress();
+                }
+
+                traceOrDebug(traceOn, "Sending message through endpoint : " +
+                        getName() + " resolving to address = " + address);
+                traceOrDebug(traceOn, "SOAPAction: " + (synCtx.getSoapAction() != null ?
+                        synCtx.getSoapAction() : "null"));
+                traceOrDebug(traceOn, "WSA-Action: " + (synCtx.getWSAAction() != null ?
+                        synCtx.getWSAAction() : "null"));
+                if (traceOn && trace.isTraceEnabled()) {
+                    trace.trace("Envelope : \n" + synCtx.getEnvelope());
+                }
             }
-            synCtx.getEnvelope().build();
+
+            // push the errorHandler sequence into the current message as the fault handler
+            if (errorHandler != null) {
+                Mediator errorHandlerMediator = synCtx.getSequence(errorHandler);
+                if (errorHandlerMediator != null) {
+                    if (traceOrDebugOn) {
+                        traceOrDebug(traceOn, "Setting the onError handler : " +
+                                errorHandler + " for the endpoint : " + endpointName);
+                    }
+                    synCtx.pushFaultHandler(
+                            new MediatorFaultHandler(errorHandlerMediator));
+                } else {
+                    log.warn("onError handler sequence : " + errorHandler + " for : " +
+                            endpointName + " cannot be found");
+                }
+            }
+
+            // register this as the immediate fault handler for this message.
+            synCtx.pushFaultHandler(this);
+            // add this as the last endpoint to process this message - used by statistics counting code
+            synCtx.setProperty(SynapseConstants.LAST_ENDPOINT, this);
+            // set message level metrics collector
+            org.apache.axis2.context.MessageContext axis2Ctx = ((Axis2MessageContext) synCtx).getAxis2MessageContext();
+            axis2Ctx.setProperty(BaseConstants.METRICS_COLLECTOR, metricsMBean);
+
+            if (contentAware) {
+                try {
+                    RelayUtils.buildMessage(((Axis2MessageContext) synCtx).getAxis2MessageContext(), false);
+                    axis2Ctx.setProperty(RelayConstants.FORCE_RESPONSE_EARLY_BUILD, Boolean.TRUE);
+                    if (forceBuildMC) {
+                        ((Axis2MessageContext) synCtx).getAxis2MessageContext().getEnvelope().build();
+                    }
+                } catch (Exception e) {
+                    handleException("Error while building message", e);
+                }
+            }
+
+            evaluateProperties(synCtx);
+
+            // if the envelope preserving set build the envelope
+            MediatorProperty preserveEnv = getProperty(SynapseConstants.PRESERVE_ENVELOPE);
+            if (preserveEnv != null && JavaUtils.isTrueExplicitly(preserveEnv.getValue() != null ?
+                    preserveEnv.getValue() : preserveEnv.getEvaluatedExpression(synCtx))) {
+                if (traceOrDebugOn) {
+                    traceOrDebug(traceOn, "Preserving the envelope by building it before " +
+                            "sending, since it is explicitly set");
+                }
+                synCtx.getEnvelope().build();
+            }
+
+            // Send the message through this endpoint
+            synCtx.getEnvironment().send(definition, synCtx);
+
+            if (isStatisticsEnabled) {
+                CloseEventCollector.closeEntryEvent(synCtx, getReportingName(), ComponentType.ENDPOINT,
+                        statisticReportingIndex, false);
+            }
         }
 
-        // Send the message through this endpoint
-        synCtx.getEnvironment().send(definition, synCtx);
-
-        if (isStatisticsEnabled) {
-            CloseEventCollector.closeEntryEvent(synCtx, getReportingName(), ComponentType.ENDPOINT,
-                    statisticReportingIndex, false);
-        }
     }
 
     /**
@@ -795,6 +802,10 @@ public abstract class AbstractEndpoint extends FaultHandler implements Endpoint,
 
     public void setContentAware(boolean contentAware) {
     	this.contentAware = contentAware;
+    }
+
+    public void setBlocking(boolean blocking) {
+        this.blocking = blocking;
     }
 
 

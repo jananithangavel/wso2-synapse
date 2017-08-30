@@ -278,6 +278,10 @@ public abstract class EndpointFactory implements XMLToObjectMapper {
         Iterator iter = listEndpointElement.getChildrenWithName(XMLConfigConstants.ENDPOINT_ELT);
         while (iter.hasNext()) {
             OMElement endptElem = (OMElement) iter.next();
+            OMAttribute blockingAtt = listEndpointElement.getAttribute(new QName("blocking"));
+            if (blockingAtt != null) {
+                endptElem.addAttribute(blockingAtt);
+            }
             Endpoint endpoint = EndpointFactory.getEndpointFromElement(endptElem, true, properties);
             if (endpoint instanceof IndirectEndpoint) {
                 String key = ((IndirectEndpoint) endpoint).getKey();

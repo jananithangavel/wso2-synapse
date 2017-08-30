@@ -92,6 +92,11 @@ public class WSDLEndpointFactory extends DefaultEndpointFactory {
             wsdlEndpoint.setName(name.getAttributeValue());
         }
 
+        OMAttribute blockingAtt = epConfig.getAttribute(new QName("blocking"));
+        if (blockingAtt != null) {
+            wsdlEndpoint.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
+        }
+
         OMElement wsdlElement = epConfig.getFirstChildWithName
                 (new QName(SynapseConstants.SYNAPSE_NAMESPACE, "wsdl"));
         if (wsdlElement != null) {

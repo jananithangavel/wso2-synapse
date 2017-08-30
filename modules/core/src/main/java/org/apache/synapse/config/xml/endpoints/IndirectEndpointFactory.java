@@ -19,6 +19,7 @@
 
 package org.apache.synapse.config.xml.endpoints;
 
+import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
 import org.apache.synapse.endpoints.Endpoint;
 import org.apache.synapse.endpoints.IndirectEndpoint;
@@ -52,6 +53,12 @@ public class IndirectEndpointFactory extends EndpointFactory {
         if (name != null) {
             indirectEndpoint.setName(name);
         }
+
+        OMAttribute blockingAtt = epConfig.getAttribute(new QName("blocking"));
+        if (blockingAtt != null) {
+            indirectEndpoint.setBlocking(Boolean.parseBoolean(blockingAtt.getAttributeValue()));
+        }
+
         indirectEndpoint.setKey(ref);
 
         // process the parameters
