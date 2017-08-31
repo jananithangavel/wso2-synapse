@@ -19,8 +19,10 @@
 
 package org.apache.synapse.endpoints;
 
+import org.apache.axis2.AxisFault;
 import org.apache.axis2.clustering.ClusteringAgent;
 import org.apache.axis2.context.ConfigurationContext;
+import org.apache.axis2.context.ConfigurationContextFactory;
 import org.apache.axis2.description.AxisOperation;
 import org.apache.axis2.transport.base.BaseConstants;
 import org.apache.axis2.util.JavaUtils;
@@ -37,6 +39,7 @@ import org.apache.synapse.aspects.flow.statistics.collectors.CloseEventCollector
 import org.apache.synapse.aspects.flow.statistics.collectors.OpenEventCollector;
 import org.apache.synapse.aspects.flow.statistics.collectors.RuntimeStatisticCollector;
 import org.apache.synapse.aspects.flow.statistics.data.artifact.ArtifactHolder;
+import org.apache.synapse.message.senders.blocking.BlockingMsgSender;
 import org.apache.synapse.transport.customlogsetter.CustomLogSetter;
 import org.apache.synapse.aspects.AspectConfiguration;
 import org.apache.synapse.aspects.ComponentType;
@@ -293,7 +296,31 @@ public abstract class AbstractEndpoint extends FaultHandler implements Endpoint,
 
     public void send(MessageContext synCtx) {
         if(blocking){
-            int x=2;
+            BlockingMsgSender blockingMsgSender;
+            try {
+                ConfigurationContext configCtx = ConfigurationContextFactory.createConfigurationContextFromFileSystem(
+                        (String) synCtx.getProperty(SynapseConstants.BLOCKING_CLIENT_REPO),
+                        (String) synCtx.getProperty(SynapseConstants.BLOCKING_AXIS2_XML));
+                blockingMsgSender = new BlockingMsgSender();
+                blockingMsgSender.setConfigurationContext(configCtx);
+                blockingMsgSender.init();
+
+            } catch (AxisFault axisFault) {
+                String msg = "Error while initializing the Call mediator";
+                log.error(msg, axisFault);
+                throw new SynapseException(msg, axisFault);
+            }
+
+            if("false".equals(synCtx.getProperty(SynapseConstants.BLOCKING_INIT_CLIENT_OPTION)))
+            {
+                blockingMsgSender.setInitClientOptions(false);
+            }
+            try {
+                blockingMsgSender.send(this, synCtx);
+            }catch (Exception e) {
+                //e.printStackTrace();
+            }
+
         }
         else{
             logSetter();

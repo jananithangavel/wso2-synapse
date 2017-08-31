@@ -222,7 +222,8 @@ public class CalloutMediator extends AbstractMediator implements ManagedLifecycl
                 if ("true".equals(synCtx.getProperty(SynapseConstants.OUT_ONLY))) {
                     blockingMsgSender.send(endpoint, synapseOutMsgCtx);
                 } else {
-                    resultMsgCtx = blockingMsgSender.send(endpoint, synapseOutMsgCtx);
+                     blockingMsgSender.send(endpoint, synapseOutMsgCtx);
+                    resultMsgCtx =synapseOutMsgCtx;
                     setResponseHttpSc(resultMsgCtx, synCtx);
                     if ("true".equals(resultMsgCtx.getProperty(SynapseConstants.BLOCKING_SENDER_ERROR))) {
                         handleFault(synCtx, (Exception) resultMsgCtx.getProperty(SynapseConstants.ERROR_EXCEPTION));

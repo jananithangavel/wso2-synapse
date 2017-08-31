@@ -40,13 +40,13 @@ import org.apache.synapse.SynapseConstants;
 import org.apache.synapse.SynapseException;
 import org.apache.synapse.SynapseHandler;
 import org.apache.synapse.commons.json.JsonUtil;
+import org.apache.synapse.continuation.ContinuationStackManager;
+import org.apache.synapse.continuation.SeqContinuationState;
 import org.apache.synapse.core.axis2.AnonymousServiceFactory;
 import org.apache.synapse.core.axis2.Axis2MessageContext;
 import org.apache.synapse.endpoints.AbstractEndpoint;
 import org.apache.synapse.endpoints.Endpoint;
 import org.apache.synapse.endpoints.EndpointDefinition;
-import org.apache.synapse.endpoints.IndirectEndpoint;
-import org.apache.synapse.endpoints.TemplateEndpoint;
 import org.apache.synapse.util.MessageHelper;
 
 import javax.xml.namespace.QName;
@@ -99,19 +99,11 @@ public class BlockingMsgSender {
         }
     }
 
-    public MessageContext send(Endpoint endpoint, MessageContext synapseInMsgCtx)
+    public void send(Endpoint endpoint, MessageContext synapseInMsgCtx)
             throws Exception {
 
         if (log.isDebugEnabled()) {
             log.debug("Start Sending the Message ");
-        }
-
-        if (endpoint instanceof  IndirectEndpoint) {
-            String endpointKey = ((IndirectEndpoint) endpoint).getKey();
-            endpoint = synapseInMsgCtx.getEndpoint(endpointKey);
-        }
-        if (endpoint instanceof TemplateEndpoint) {
-            endpoint = ((TemplateEndpoint) endpoint).getRealEndpoint();
         }
 
         AbstractEndpoint abstractEndpoint = (AbstractEndpoint) endpoint;
@@ -207,6 +199,7 @@ public class BlockingMsgSender {
                  * response Status code so that others can make use of it.
                  */
                 axisInMsgCtx.setProperty(SynapseConstants.HTTP_SC, httpStatusCode);
+                synapseInMsgCtx.setProperty(SynapseConstants.BLOCKING_SENDER_ERROR, "false");
             } else {
                 org.apache.axis2.context.MessageContext result =
                 sendReceive(axisOutMsgCtx, clientOptions, anonymousService, serviceCtx, synapseInMsgCtx);
@@ -232,7 +225,6 @@ public class BlockingMsgSender {
                 }
 
                 synapseInMsgCtx.setProperty(SynapseConstants.BLOCKING_SENDER_ERROR, "false");
-                return synapseInMsgCtx;
             }
         } catch (Exception ex) {
             /*
@@ -255,17 +247,26 @@ public class BlockingMsgSender {
                         synapseInMsgCtx.setEnvelope(faultMC.getEnvelope());
                     }
                 }
-                return synapseInMsgCtx;
             } else {
                 if (ex instanceof AxisFault) {
+                    synapseInMsgCtx.setProperty(SynapseConstants.BLOCKING_SENDER_ERROR, "true");
+                    synapseInMsgCtx.setProperty(SynapseConstants.ERROR_EXCEPTION, ex);
                     AxisFault fault = (AxisFault) ex;
                     setErrorDetails(synapseInMsgCtx, fault);
                 }
             }
-            handleException("Error sending Message to url : " +
-                            ((AbstractEndpoint) endpoint).getDefinition().getAddress(), ex);
         }
-        return null;
+        if ("true".equals(synapseInMsgCtx.getProperty(SynapseConstants.BLOCKING_SENDER_ERROR))) {
+            abstractEndpoint.handleFault(synapseInMsgCtx, (Exception) synapseInMsgCtx.getProperty(SynapseConstants.ERROR_EXCEPTION));
+        }
+        else{
+            abstractEndpoint.onSuccess();
+            synapseInMsgCtx.getFaultStack().removeAllElements();
+            SeqContinuationState seqContinuationState = (SeqContinuationState) ContinuationStackManager.peakContinuationStateStack(synapseInMsgCtx);
+            if (seqContinuationState != null) {
+                ContinuationStackManager.pushFaultHandler(synapseInMsgCtx, seqContinuationState);
+            }
+        }
     }
 
     private void sendRobust(org.apache.axis2.context.MessageContext axisOutMsgCtx,
