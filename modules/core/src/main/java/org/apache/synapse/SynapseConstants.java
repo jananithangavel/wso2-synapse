@@ -360,6 +360,10 @@ public final class SynapseConstants {
     public static final String BLOCKING_SENDER_PRESERVE_REQ_HEADERS =
             "BLOCKING_SENDER_PRESERVE_REQ_HEADERS";
     public static final String DISABLE_CHUNKING = "DISABLE_CHUNKING";
+    public final static String BLOCKING_CLIENT_REPO = "blocking.client.repo";
+    public final static String BLOCKING_AXIS2_XML = "blocking.axis2.xml";
+    public final static String BLOCKING_INIT_CLIENT_OPTION = "blocking.init.client.option";
+    public final static String BLOCKING= "blocking";
 
     /** Synapse server instance name */
     public static final String SERVER_NAME = "serverName";
