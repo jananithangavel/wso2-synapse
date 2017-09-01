@@ -290,7 +290,6 @@ public abstract class AbstractEndpoint extends FaultHandler implements Endpoint,
     }
 
     public void send(MessageContext synCtx) {
-
         logSetter();
 
         Integer statisticReportingIndex = null;
@@ -306,7 +305,7 @@ public abstract class AbstractEndpoint extends FaultHandler implements Endpoint,
         if (!initialized) {
             //can't send to a non-initialized endpoint. This is a program fault
             throw new IllegalStateException("not initialized, " +
-                                            "endpoint must be in initialized state");
+                    "endpoint must be in initialized state");
         }
 
         prepareForEndpointStatistics(synCtx);
@@ -319,11 +318,11 @@ public abstract class AbstractEndpoint extends FaultHandler implements Endpoint,
             }
 
             traceOrDebug(traceOn, "Sending message through endpoint : " +
-                                  getName() + " resolving to address = " + address);
+                    getName() + " resolving to address = " + address);
             traceOrDebug(traceOn, "SOAPAction: " + (synCtx.getSoapAction() != null ?
-                                                    synCtx.getSoapAction() : "null"));
+                    synCtx.getSoapAction() : "null"));
             traceOrDebug(traceOn, "WSA-Action: " + (synCtx.getWSAAction() != null ?
-                                                    synCtx.getWSAAction() : "null"));
+                    synCtx.getWSAAction() : "null"));
             if (traceOn && trace.isTraceEnabled()) {
                 trace.trace("Envelope : \n" + synCtx.getEnvelope());
             }
@@ -335,13 +334,13 @@ public abstract class AbstractEndpoint extends FaultHandler implements Endpoint,
             if (errorHandlerMediator != null) {
                 if (traceOrDebugOn) {
                     traceOrDebug(traceOn, "Setting the onError handler : " +
-                                          errorHandler + " for the endpoint : " + endpointName);
+                            errorHandler + " for the endpoint : " + endpointName);
                 }
                 synCtx.pushFaultHandler(
                         new MediatorFaultHandler(errorHandlerMediator));
             } else {
                 log.warn("onError handler sequence : " + errorHandler + " for : " +
-                         endpointName + " cannot be found");
+                        endpointName + " cannot be found");
             }
         }
 
@@ -370,10 +369,10 @@ public abstract class AbstractEndpoint extends FaultHandler implements Endpoint,
         // if the envelope preserving set build the envelope
         MediatorProperty preserveEnv = getProperty(SynapseConstants.PRESERVE_ENVELOPE);
         if (preserveEnv != null && JavaUtils.isTrueExplicitly(preserveEnv.getValue() != null ?
-                                                              preserveEnv.getValue() : preserveEnv.getEvaluatedExpression(synCtx))) {
+                preserveEnv.getValue() : preserveEnv.getEvaluatedExpression(synCtx))) {
             if (traceOrDebugOn) {
                 traceOrDebug(traceOn, "Preserving the envelope by building it before " +
-                                      "sending, since it is explicitly set");
+                        "sending, since it is explicitly set");
             }
             synCtx.getEnvelope().build();
         }

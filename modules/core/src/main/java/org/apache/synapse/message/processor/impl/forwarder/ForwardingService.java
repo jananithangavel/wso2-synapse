@@ -468,7 +468,9 @@ public class ForwardingService implements Task, ManagedLifecycle {
 						                         getNonRetryStatusCodes());
 
 						if (messageConsumer != null && messageConsumer.isAlive()) {
-							outCtx = sender.send(ep, messageContext);
+                            messageContext.setProperty("blockingMsgSender",sender);
+							ep.send(messageContext);
+							outCtx =messageContext;
 						}
 
                         if (isResponseValidationNotRequired) {
