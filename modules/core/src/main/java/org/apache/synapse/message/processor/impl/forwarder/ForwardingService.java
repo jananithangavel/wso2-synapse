@@ -31,8 +31,6 @@ import org.apache.axiom.om.util.ElementHelper;
 import org.apache.axiom.soap.SOAP11Constants;
 import org.apache.axiom.soap.SOAPFactory;
 import org.apache.axiom.soap.SOAPHeaderBlock;
-import org.apache.axis2.description.Parameter;
-import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -545,7 +543,9 @@ public class ForwardingService implements Task, ManagedLifecycle {
 			updateAxis2MessageContext(messageToDispatch);
 
 			if (messageConsumer != null && messageConsumer.isAlive()) {
-				outCtx = sender.send(endpoint, messageToDispatch);
+				messageToDispatch.setProperty(SynapseConstants.BLOCKING_MSG_SENDER, sender);
+				endpoint.send(messageToDispatch);
+				outCtx = messageToDispatch;
 			}
 
 			/*

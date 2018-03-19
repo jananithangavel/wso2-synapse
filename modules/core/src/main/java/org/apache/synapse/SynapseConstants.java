@@ -563,4 +563,6 @@ public final class SynapseConstants {
     // Password pattern
     public static final Pattern PASSWORD_PATTERN = Pattern.compile(":(?:[^/]+)@");
 
+    //blocking Message Sender
+    public static final String BLOCKING_MSG_SENDER = "blockingMsgSender";
 }
