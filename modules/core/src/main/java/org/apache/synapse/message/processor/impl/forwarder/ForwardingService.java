@@ -546,7 +546,9 @@ public class ForwardingService implements Task, ManagedLifecycle {
 			updateAxis2MessageContext(messageToDispatch);
 
 			if (messageConsumer != null && messageConsumer.isAlive()) {
-				outCtx = sender.send(endpoint, messageToDispatch);
+				messageToDispatch.setProperty(SynapseConstants.BLOCKING_MSG_SENDER, sender);
+				endpoint.send(messageToDispatch);
+				outCtx = messageToDispatch;
 			}
 
 			/*
