@@ -47,6 +47,7 @@ import org.apache.synapse.SynapseConstants;
 import org.apache.synapse.commons.throttle.core.ConcurrentAccessController;
 import org.apache.synapse.commons.throttle.core.ConcurrentAccessReplicator;
 import org.apache.synapse.endpoints.EndpointDefinition;
+import org.apache.synapse.message.senders.blocking.BlockingMsgSender;
 import org.apache.synapse.rest.RESTConstants;
 import org.apache.synapse.transport.nhttp.NhttpConstants;
 import org.apache.synapse.transport.passthru.PassThroughConstants;
@@ -89,6 +90,13 @@ public class Axis2FlexibleMEPClient {
         boolean wsRMEnabled = false;
         boolean wsAddressingEnabled = false;
         String wsAddressingVersion = null;
+
+        if (synapseOutMessageContext.getProperty(SynapseConstants.BLOCKING_MSG_SENDER) != null) {
+            BlockingMsgSender blockingMsgSender = (BlockingMsgSender) synapseOutMessageContext
+                    .getProperty(SynapseConstants.BLOCKING_MSG_SENDER);
+            blockingMsgSender.send(endpoint, synapseOutMessageContext);
+            return;
+        }
 
         if (endpoint != null) {
             separateListener = endpoint.isUseSeparateListener();
